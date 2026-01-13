@@ -39,9 +39,10 @@ def home():
 
 @app.route("/contact", methods=["POST"])
 def contact():
-    data = request.get_json()  # <-- ensures JSON
+    data = request.get_json()  # Use get_json since frontend sends JSON
 
-    if not data or not data.get("name") or not data.get("email") or not data.get("message"):
+    # Validate fields and trim spaces
+    if not data or not data.get("name", "").strip() or not data.get("email", "").strip() or not data.get("message", "").strip():
         return jsonify({"error": "All fields are required"}), 400
 
     name = data["name"].strip()
@@ -50,13 +51,22 @@ def contact():
 
     db = sqlite3.connect(DB_PATH)
     cursor = db.cursor()
-    cursor.execute("INSERT INTO messages (name, email, message) VALUES (?, ?, ?)", (name, email, message))
+
+    # Insert into DB
+    cursor.execute(
+        "INSERT INTO messages (name, email, message) VALUES (?, ?, ?)",
+        (name, email, message)
+    )
     db.commit()
     message_id = cursor.lastrowid
 
+    # Send follow-up email if keys exist
     try:
         send_followup_email(email, name)
-        cursor.execute("UPDATE messages SET followup_sent = 1 WHERE id = ?", (message_id,))
+        cursor.execute(
+            "UPDATE messages SET followup_sent = 1 WHERE id = ?",
+            (message_id,)
+        )
         db.commit()
     except Exception as e:
         print("Email failed:", e)
