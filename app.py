@@ -1,0 +1,70 @@
+import os
+import sqlite3
+from datetime import datetime
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+
+from send_email import send_followup_email
+
+from dotenv import load_dotenv
+load_dotenv()
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'database.db')
+
+app = Flask(__name__)
+CORS(app)
+
+def init_db():
+    db = sqlite3.connect('database.db')
+    cursor = db.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            message TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            followup_sent INTEGER DEFAULT 0
+
+        )
+    ''')
+    db.commit()
+    db.close()
+init_db()
+
+# @app.route('/')
+# def home():
+#     return "Welcome to the Flask API!"
+
+@app.route("/contact", methods=["POST"])
+def contact():
+    data = request.json
+
+    db = sqlite3.connect(DB_PATH)
+    cursor = db.cursor()
+
+    cursor.execute("""
+        INSERT INTO messages (name, email, message)
+        VALUES (?, ?, ?)
+    """, (data["name"], data["email"], data["message"]))
+
+    db.commit()
+    message_id = cursor.lastrowid
+
+    try:
+        send_followup_email(data["email"], data["name"])
+        cursor.execute(
+            "UPDATE messages SET followup_sent = 1 WHERE id = ?",
+            (message_id,)
+        )
+        db.commit()
+    except Exception as email_error:
+        print("Email failed:", email_error)
+
+    db.close()
+
+    return jsonify({"message": "Contact form submitted successfully!"}), 200
+
+if __name__ == '__main__':
+    app.run(debug=True)
