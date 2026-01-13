@@ -41,6 +41,10 @@ init_db()
 def contact():
     data = request.json
 
+    if not data.get("name") or not data.get("email") or not data.get("message"):
+        return jsonify({"error": "All fields are required"}), 400
+
+
     db = sqlite3.connect(DB_PATH)
     cursor = db.cursor()
 
