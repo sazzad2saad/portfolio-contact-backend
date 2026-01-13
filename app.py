@@ -33,9 +33,9 @@ def init_db():
     db.close()
 init_db()
 
-# @app.route('/')
-# def home():
-#     return "Welcome to the Flask API!"
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"status": "Backend is live"}), 200
 
 @app.route("/contact", methods=["POST"])
 def contact():
