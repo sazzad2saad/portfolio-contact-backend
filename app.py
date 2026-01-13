@@ -37,7 +37,7 @@ init_db()
 def home():
     return jsonify({"status": "Backend is live"}), 200
 
-@app.route("/contact", methods=["POST"])
+@app.route("/contact", methods=["POST"], strict_slashes=False)
 def contact():
     data = request.json  # <-- JSON payload from frontend
 
