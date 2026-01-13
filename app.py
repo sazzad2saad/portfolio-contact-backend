@@ -39,28 +39,26 @@ def home():
 
 @app.route("/contact", methods=["POST"])
 def contact():
-    data = request.get_json()  # Use get_json since frontend sends JSON
+    data = request.json  # <-- JSON payload from frontend
 
-    # Validate fields and trim spaces
-    if not data or not data.get("name", "").strip() or not data.get("email", "").strip() or not data.get("message", "").strip():
+    if not data or not data.get("name") or not data.get("email") or not data.get("message"):
         return jsonify({"error": "All fields are required"}), 400
 
-    name = data["name"].strip()
-    email = data["email"].strip()
-    message = data["message"].strip()
+    name = data["name"]
+    email = data["email"]
+    message = data["message"]
 
     db = sqlite3.connect(DB_PATH)
     cursor = db.cursor()
 
-    # Insert into DB
-    cursor.execute(
-        "INSERT INTO messages (name, email, message) VALUES (?, ?, ?)",
-        (name, email, message)
-    )
+    cursor.execute("""
+        INSERT INTO messages (name, email, message)
+        VALUES (?, ?, ?)
+    """, (name, email, message))
+
     db.commit()
     message_id = cursor.lastrowid
 
-    # Send follow-up email if keys exist
     try:
         send_followup_email(email, name)
         cursor.execute(
@@ -68,12 +66,13 @@ def contact():
             (message_id,)
         )
         db.commit()
-    except Exception as e:
-        print("Email failed:", e)
+    except Exception as email_error:
+        print("Email failed:", email_error)
 
     db.close()
 
     return jsonify({"message": "Contact form submitted successfully!"}), 200
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
