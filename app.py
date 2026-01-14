@@ -58,21 +58,22 @@ def contact():
     db = sqlite3.connect(DB_PATH)
     cursor = db.cursor()
 
-    cursor.execute("""
-        INSERT INTO messages (name, email, message)
-        VALUES (?, ?, ?)
-    """, (name, email, message))
-
+    cursor.execute(
+        "INSERT INTO messages (name, email, message) VALUES (?, ?, ?)",
+        (name, email, message)
+    )
     db.commit()
     message_id = cursor.lastrowid
 
     try:
-        # send_followup_email(email, name)
+        send_followup_email(email, name)
+
         cursor.execute(
             "UPDATE messages SET followup_sent = 1 WHERE id = ?",
             (message_id,)
         )
         db.commit()
+
     except Exception as email_error:
         print("Email failed:", email_error)
 
