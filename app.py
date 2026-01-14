@@ -65,17 +65,17 @@ def contact():
     db.commit()
     message_id = cursor.lastrowid
 
-    try:
-        send_followup_email(email, name)
+    # try:
+    #     send_followup_email(email, name)
 
-        cursor.execute(
-            "UPDATE messages SET followup_sent = 1 WHERE id = ?",
-            (message_id,)
-        )
-        db.commit()
+    #     cursor.execute(
+    #         "UPDATE messages SET followup_sent = 1 WHERE id = ?",
+    #         (message_id,)
+    #     )
+    #     db.commit()
 
-    except Exception as email_error:
-        print("Email failed:", email_error)
+    # except Exception as email_error:
+    #     print("Email failed:", email_error)
 
     db.close()
 
