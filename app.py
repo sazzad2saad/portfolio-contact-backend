@@ -67,7 +67,7 @@ def contact():
     message_id = cursor.lastrowid
 
     try:
-        send_followup_email(email, name)
+        # send_followup_email(email, name)
         cursor.execute(
             "UPDATE messages SET followup_sent = 1 WHERE id = ?",
             (message_id,)
