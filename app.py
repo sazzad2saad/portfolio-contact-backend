@@ -13,7 +13,12 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'database.db')
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/contact": {
+        "origins": ["https://sazzad2saad.netlify.app"]
+    }
+})
+
 
 def init_db():
     db = sqlite3.connect('database.db')
@@ -37,9 +42,11 @@ init_db()
 def home():
     return jsonify({"status": "Backend is live"}), 200
 
-@app.route("/contact", methods=["POST"], strict_slashes=False)
+@app.route("/contact", methods=["POST", "OPTIONS"], strict_slashes=False)
 def contact():
-    data = request.json  # <-- JSON payload from frontend
+    data = request.get_json(force=True)
+
+    print("Received data:", data)
 
     if not data or not data.get("name") or not data.get("email") or not data.get("message"):
         return jsonify({"error": "All fields are required"}), 400
