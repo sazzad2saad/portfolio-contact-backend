@@ -100,6 +100,8 @@ def contact():
             """
         })
 
+        print("RESEND_API_KEY loaded:", bool(os.getenv("RESEND_API_KEY")))
+
         print("Admin notification email sent")
 
         # Confirmation email to user
