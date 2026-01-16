@@ -9,13 +9,25 @@ from send_email import send_followup_email
 from dotenv import load_dotenv
 load_dotenv()
 
+import resend
+
+resend.api_key = os.getenv("RESEND_API_KEY")
+
+r = resend.Emails.send({
+  "from": "onboarding@resend.dev",
+  "to": "sazzad2saad@gmail.com",
+  "subject": "Hello World",
+  "html": "<p>Congrats on sending your <strong>first email</strong>!</p>"
+})
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'database.db')
 
 app = Flask(__name__)
 CORS(app, resources={
     r"/contact": {
-        "origins": ["https://sazzad2saad.netlify.app"]
+        "origins": ["https://sazzad2saad.vercel.app"]
     }
 })
 
@@ -65,17 +77,17 @@ def contact():
     db.commit()
     message_id = cursor.lastrowid
 
-    # try:
-    #     send_followup_email(email, name)
+    try:
+        send_followup_email(email, name)
 
-    #     cursor.execute(
-    #         "UPDATE messages SET followup_sent = 1 WHERE id = ?",
-    #         (message_id,)
-    #     )
-    #     db.commit()
+        cursor.execute(
+            "UPDATE messages SET followup_sent = 1 WHERE id = ?",
+            (message_id,)
+        )
+        db.commit()
 
-    # except Exception as email_error:
-    #     print("Email failed:", email_error)
+    except Exception as email_error:
+        print("Email failed:", email_error)
 
     db.close()
 
