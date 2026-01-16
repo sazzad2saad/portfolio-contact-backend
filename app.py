@@ -20,10 +20,17 @@ DB_PATH = os.path.join(BASE_DIR, "database.db")
 
 app = Flask(__name__)
 
-# CORS: allow only your frontend
+# CORS: allow frontend (localhost for dev, production for deployed)
 CORS(app, resources={
     r"/contact": {
-        "origins": ["https://sazzad2saad.vercel.app"]
+        "origins": [
+            "http://localhost:5173",  # Vite dev server
+            "http://127.0.0.1:5173",
+            "http://localhost:3000",  # Alternative dev port
+            "https://sazzad2saad.vercel.app"
+        ],
+        "methods": ["POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
     }
 })
 
@@ -52,7 +59,7 @@ def home():
     return jsonify({"status": "Backend is live"}), 200
 
 
-@app.route("/contact", methods=["POST", "OPTIONS"], strict_slashes=False)
+@app.route("/contact", methods=["POST"], strict_slashes=False)
 def contact():
     data = request.get_json(silent=True)
 
@@ -131,11 +138,11 @@ def contact():
     finally:
         db.close()
 
-    return jsonify({"message": "Contact form submitted successfully!"}), 200
+    return jsonify({"message": "Contact form submitted successfully!", "data": data}), 200
 
 
 # -------------------- RUN --------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=True)
     print(f"Server running on port {port}")
